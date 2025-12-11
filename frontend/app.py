@@ -6,6 +6,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 import io
 import base64
+import lienzo
 import numpy as np
 from scipy.interpolate import make_interp_spline # Para suavizar la curva
 
@@ -312,11 +313,13 @@ with st.container():
             
         # --- Corte Láser (Color ACTIVO: SUCCESS/Turquesa) ---
         with n2:
-            if st.button("Corte Láser"): switch_tab("Corte Láser")
-            if st.session_state.active_tab == "Corte Láser": 
+            # 🚨 CAMBIO CLAVE AQUÍ:
+            # Antes decía "Corte Láser", ahora debe decir "Lienzo Imagen" en ambos lugares
+            if st.button("Lienzo Imagen"): switch_tab("Lienzo Imagen")
+            
+            if st.session_state.active_tab == "Lienzo Imagen": 
                  # Borde inferior Turquesa, Texto Turquesa
                  st.markdown(f'<style>div[data-testid="column"]:nth-of-type(3) button{{border-bottom: 3px solid {C_SUCCESS} !important; color: {C_SUCCESS} !important; font-weight: 700 !important;}}</style>', unsafe_allow_html=True)
-
         # --- Impresión Digital (Color ACTIVO: WARNING/Amarillo) ---
         with n3:
             if st.button("Impresión Digital"): switch_tab("Impresión Digital")
@@ -506,6 +509,14 @@ if st.session_state.active_tab == "Plotter Inkjet":
                     df_h = pd.DataFrame(item['data']['items'])
                     st.dataframe(df_h[["archivo", "dimensiones", "precio"]], use_container_width=True, hide_index=True)
 
-# 🚨 ÚNICO BLOQUE DE ADVERTENCIA PARA PESTAÑAS INACTIVAS 🚨
-elif st.session_state.active_tab in ["Corte Láser", "Impresión Digital"]:
-    st.warning(f"🚧 Módulo {st.session_state.active_tab} en construcción.")
+
+
+elif st.session_state.active_tab == "Lienzo Imagen":
+    lienzo.app()      # Ejecutamos la función principal de ese archivo
+
+# ------------------------------------------
+# PESTAÑA 3: IMPRESIÓN DIGITAL (AÚN EN CONSTRUCCIÓN)
+# ------------------------------------------
+elif st.session_state.active_tab == "Impresión Digital":
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.warning(f"🚧 El módulo de **{st.session_state.active_tab}** está en construcción.")
