@@ -1,4 +1,7 @@
 import streamlit as st
+import os
+import base64
+from PIL import Image
 import requests
 import pandas as pd
 from datetime import datetime
@@ -7,6 +10,7 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import lienzo
+import simulador
 import numpy as np
 from scipy.interpolate import make_interp_spline # Para suavizar la curva
 
@@ -23,37 +27,52 @@ if 'uploader_key' not in st.session_state: st.session_state.uploader_key = 0
 
 # Colores Dinámicos
 if st.session_state.conf_dark_mode:
-    C_BG = "#121212"
-    C_CARD = "#1E1E1E"
-    C_TEXT = "#E0E0E0"
-    C_SUBTEXT = "#B0B3B8"
-    C_BORDER = "#333333"
-    C_UPLOAD = "#2C2C2C"
-    # Colores Neón para modo oscuro
-    C_PRIMARY = "#FF6B4A"
-    C_SUCCESS = "#64FFDA"
-    C_WARNING = "#FFD740"
-    RED = "#52D50B"
+    # --- MODO OSCURO (PREMIUM / ELEGANTE) ---
+    C_BG = "#0D1117"        # Fondo: Azul grisáceo muy oscuro (Estilo GitHub Dark)
+    C_CARD = "#161B22"      # Tarjetas: Un tono más claro que el fondo
+    C_TEXT = "#F0F6FC"      # Texto: Blanco hueso (no quema la vista)
+    C_SUBTEXT = "#D0D7DE"   # Subtexto: Gris acero
+    C_BORDER = "#30363D"    # Bordes: Sutiles y elegantes
+    C_UPLOAD = "#0D1117"    # Fondo del área de carga
+    
+    # Colores de Acento (Saturación balanceada)
+    C_PRIMARY = "#F778BA"   # Rosa/Coral moderno (Destaca sin ser agresivo) 
+    # O SI PREFIERES MANTENER EL NARANJA, USA ESTE: C_PRIMARY = "#FF8C42" 
+    
+    C_SUCCESS = "#238636"   # Verde Bosque (Profesional y serio)
+    C_WARNING = "#D29922"   # Ocre/Ambar (Mejor que el amarillo limón)
+    RED = "#DA3633"         # Rojo ladrillo
+    
 else:
-    C_BG = "#EAE6EF"
-    C_CARD = "#FFFFFF"
-    C_TEXT = "#2C3E50"
-    C_SUBTEXT = "#95A5A6"
-    C_BORDER = "#D1D5DB"
-    C_UPLOAD = "#F8FAFC"
-    # Colores Vibrantes para modo claro
-    C_PRIMARY = "#FC4A1A"
-    C_SUCCESS = "#4ABDAC"
-    C_WARNING = "#090D0E"
-    RED = "#D5280B"
-
-C_NEUTRAL = "#95A5A6"
+    # --- MODO CLARO (LIMPIO / MINIMALISTA) ---
+    C_BG = "#F3F4F6"        # Fondo: Gris muy suave (casi blanco)
+    C_CARD = "#FFFFFF"      # Tarjetas: Blanco puro
+    C_TEXT = "#1F2937"      # Texto: Gris muy oscuro (mejor que negro puro)
+    C_SUBTEXT = "#6B7280"   # Subtexto: Gris medio
+    C_BORDER = "#E5E7EB"    # Bordes: Muy suaves
+    C_UPLOAD = "#F9FAFB"    # Fondo carga
+    
+    # Colores de Acento
+    C_PRIMARY = "#EA580C"   # Naranja Quemado (Corporativo)
+    C_SUCCESS = "#059669"   # Esmeralda
+    C_WARNING = "#D97706"   # Ambar oscuro
+    RED = "#DC2626"         # Rojo estándar
+    
+C_NEUTRAL = "#9CA3AF"
 
 st.set_page_config(page_title="Centro de Cotización", layout="wide", page_icon="🖨️")
 
 # ==========================================
 # 🖌️ 2. ESTILOS CSS PROFESIONALES
 # ==========================================
+try:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    ruta_logo = os.path.join(current_dir, "logo_virtual.png")
+    favicon = Image.open(ruta_logo)
+except:
+    favicon = "🖨️ "
+
+st.set_page_config(page_title="Centro de Cotización", layout="wide", page_icon=favicon)
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -283,6 +302,22 @@ def generar_pdf(items, total_global):
     pdf.cell(0, 10, f"TOTAL: ${total_global:,.0f}", 0, 1, 'R')
     return bytes(pdf.output())
 
+# --- PREPARACIÓN DEL LOGO PARA HTML ---
+def obtener_imagen_base64(ruta):
+    with open(ruta, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode('utf-8')
+
+# Definimos la ruta y convertimos
+ruta_img_header = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo_virtual.png")
+try:
+    img_b64 = obtener_imagen_base64(ruta_img_header)
+    # Creamos la etiqueta HTML de la imagen
+    logo_html = f'<img src="data:image/png;base64,{img_b64}" style="width:50px; height:50px; object-fit:contain;">'
+except:
+    # Si falla, usamos el emoji de respaldo
+    logo_html = '<div style="font-size:2rem;">🖨️</div>'
+# --------------------------------------
+
 # ==========================================
 # 5. HEADER
 # ==========================================
@@ -291,15 +326,18 @@ with st.container():
     c_logo, c_nav, c_conf = st.columns([2.5, 4, 1])
     
     with c_logo:
+        # CORRECCIÓN: El HTML está pegado a la izquierda para evitar errores de indentación
         st.markdown(f"""
-        <div style="display:flex; align-items:center; gap:12px;">
-            <div style="background:{C_SUCCESS}; width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:1.5rem;">🖨️</div>
-            <div>
-                <h2 style="margin:0; font-size:1.4rem; color:{C_SUCCESS}; letter-spacing:-0.5px;">Centro de Cotización</h2>
-                <span style="font-size:0.8rem; color:{C_SUBTEXT}; letter-spacing:1px;">PANEL PROFESIONAL</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+<div style="display:flex; align-items:center; gap:15px;">
+    <div style="display:flex; align-items:center; justify-content:center;">
+        {logo_html}
+    </div>
+    <div style="line-height: 1.2;">
+        <h2 style="margin:0; font-size:1.4rem; color:{C_SUCCESS}; font-weight:700; letter-spacing:-0.5px;">Centro de Cotización</h2>
+        <span style="font-size:0.75rem; color:{C_SUBTEXT}; letter-spacing:1px; text-transform:uppercase;">Panel Profesional</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
         
     with c_nav:
         n1, n2, n3 = st.columns(3)
@@ -321,11 +359,15 @@ with st.container():
                  # Borde inferior Turquesa, Texto Turquesa
                  st.markdown(f'<style>div[data-testid="column"]:nth-of-type(3) button{{border-bottom: 3px solid {C_SUCCESS} !important; color: {C_SUCCESS} !important; font-weight: 700 !important;}}</style>', unsafe_allow_html=True)
         # --- Impresión Digital (Color ACTIVO: WARNING/Amarillo) ---
-        with n3:
-            if st.button("Impresión Digital"): switch_tab("Impresión Digital")
-            if st.session_state.active_tab == "Impresión Digital": 
-                 # Borde inferior Amarillo, Texto Amarillo/Warning
-                 st.markdown(f'<style>div[data-testid="column"]:nth-of-type(4) button{{border-bottom: 3px solid {C_WARNING} !important; color: {C_WARNING} !important; font-weight: 700 !important;}}</style>', unsafe_allow_html=True)
+        with n3: # Asumiendo que n3 es la variable para la columna
+            # Botón de la pestaña
+            if st.button("Simulador de Impresión"): 
+                switch_tab("Simulador de Impresión")
+                
+            # Aplicar el estilo de activo si esta es la pestaña seleccionada
+            if st.session_state.active_tab == "Simulador de Impresión": 
+                # CRÍTICO: El CSS aplica el estilo de borde al botón que está en la cuarta columna (nth-of-type(4))
+                st.markdown(f'<style>div[data-testid="column"]:nth-of-type(4) button{{border-bottom: 3px solid {C_WARNING} !important; color: {C_WARNING} !important; font-weight: 700 !important;}}</style>', unsafe_allow_html=True)
 
 
     with c_conf:
@@ -517,6 +559,6 @@ elif st.session_state.active_tab == "Lienzo Imagen":
 # ------------------------------------------
 # PESTAÑA 3: IMPRESIÓN DIGITAL (AÚN EN CONSTRUCCIÓN)
 # ------------------------------------------
-elif st.session_state.active_tab == "Impresión Digital":
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    st.warning(f"🚧 El módulo de **{st.session_state.active_tab}** está en construcción.")
+elif st.session_state.active_tab == "Simulador de Impresión": # Nota el nuevo nombre de la pestaña
+    import simulador
+    simulador.app()
