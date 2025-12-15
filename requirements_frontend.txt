@@ -1,0 +1,7 @@
+# === Dependencias del Frontend (Streamlit) ===
+streamlit==1.30.0
+requests==2.31.0
+fpdf==1.7.2
+matplotlib==3.8.2
+scipy==1.12.0
+Pillow # Para manejar tu logo y favicon

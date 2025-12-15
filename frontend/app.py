@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import base64
+import auth
 from PIL import Image
 import requests
 import pandas as pd
@@ -60,11 +61,10 @@ else:
     
 C_NEUTRAL = "#9CA3AF"
 
-st.set_page_config(page_title="Centro de Cotización", layout="wide", page_icon="🖨️")
+# ==========================================
+# 🔒 0.5 SEGURIDAD (MÓDULO NUEVO)
+# ==========================================
 
-# ==========================================
-# 🖌️ 2. ESTILOS CSS PROFESIONALES
-# ==========================================
 try:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     ruta_logo = os.path.join(current_dir, "logo_virtual.png")
@@ -73,6 +73,8 @@ except:
     favicon = "🖨️ "
 
 st.set_page_config(page_title="Centro de Cotización", layout="wide", page_icon=favicon)
+auth.mostrar_login()
+
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -250,11 +252,25 @@ def borrar_historial(): st.session_state.historial = []
 
 def calcular_cotizacion(files, modo_etiqueta):
     if not files: return
+    
+    # 1. DEFINIR LA URL DE LA API (INTELIGENTE)
+    # Intenta buscar una variable de entorno llamada 'BACKEND_URL'.
+    # Si no la encuentra (ej. en tu PC local), usa 'http://127.0.0.1:8000' por defecto.
+    # Cuando lo subas a Hugging Face, configurarás esa variable con la URL de Render.
+    api_url = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
+    
+    # Aseguramos que la URL no termine en barra '/' para evitar errores al concatenar
+    api_url = api_url.rstrip("/")
+
     with st.spinner("Analizando geometría..."):
         try:
             mapa = {"Automático (Real)":"AUTO", "Todo Pliego (100x70)":"PLIEGO", "Todo 1/2 Pliego":"MEDIO", "Todo 1/4 Pliego":"CUARTO"}
             payload = [("files", (f.name, f.getvalue(), "application/pdf")) for f in files]
-            res = requests.post("http://127.0.0.1:8000/cotizar_lote/", files=payload, data={"modo": mapa[modo_etiqueta]})
+            
+            # 2. USAR LA VARIABLE api_url
+            endpoint = f"{api_url}/cotizar_lote/"
+            
+            res = requests.post(endpoint, files=payload, data={"modo": mapa[modo_etiqueta]})
             
             if res.status_code == 200:
                 st.session_state.resultados = res.json()
@@ -263,8 +279,14 @@ def calcular_cotizacion(files, modo_etiqueta):
                     "data": st.session_state.resultados,
                     "modo": modo_etiqueta
                 })
-            else: st.error("Error Backend")
-        except Exception as e: st.error(f"Error: {e}")
+            else: 
+                st.error(f"Error Backend ({res.status_code}): {res.text}")
+                
+        except requests.exceptions.ConnectionError:
+            st.error(f"❌ No se pudo conectar con el servidor Backend en: {api_url}")
+            st.info("Si estás en local, verifica que el backend esté corriendo. Si estás en la nube, verifica la URL en los Secrets.")
+        except Exception as e: 
+            st.error(f"Error inesperado: {e}")
 
 # Generador PDF
 def generar_pdf(items, total_global):
@@ -381,6 +403,10 @@ with st.container():
             auto = st.toggle("Cálculo Automático", value=st.session_state.conf_auto_calc)
             if auto != st.session_state.conf_auto_calc:
                 st.session_state.conf_auto_calc = auto
+                st.rerun()
+            st.divider()
+            if st.button("Cerrar Sesión", type="primary", use_container_width=True):
+                st.session_state.esta_logueado = False
                 st.rerun()
 
 st.markdown(f'<div style="height:3px; background:linear-gradient(90deg, {C_SUCCESS} 0%, {C_WARNING} 50%, {C_PRIMARY} 100%); opacity:0.6; margin-bottom:1.5rem;"></div>', unsafe_allow_html=True)
