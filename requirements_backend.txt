@@ -1,8 +1,8 @@
-# === Dependencias del Backend (FastAPI, Cálculos, PDFs) ===
-fastapi==0.109.0
-uvicorn==0.27.0
-python-multipart==0.0.9
-pymupdf==1.23.8
-pandas==2.2.0
-numpy==1.26.3
-openpyxl==3.1.2
+fastapi
+uvicorn
+python-multipart
+pymupdf
+pandas
+numpy
+openpyxl
+requests
