@@ -17,16 +17,25 @@ from scipy.interpolate import make_interp_spline # Para suavizar la curva
 
 hide_st_style = """
             <style>
-            /* Ocultar el menú de hamburguesa (3 rayitas arriba a la derecha) */
+            /* 1. Ocultar el menú de hamburguesa superior */
             #MainMenu {visibility: hidden;}
             
-            /* Ocultar el pie de página (donde sale 'Made with Streamlit' y tu foto) */
+            /* 2. Ocultar el pie de página estándar */
             footer {visibility: hidden;}
             
-            /* Ocultar la barra decorativa superior */
+            /* 3. Ocultar la barra superior decorativa */
             header {visibility: hidden;}
             
-            /* Ocultar botón de 'Deploy' si aparece */
+            /* 4. INTENTO AGRESIVO PARA OCULTAR EL AVATAR/BADGE INFERIOR */
+            /* Oculta el contenedor del visor de la app */
+            div[data-testid="stStatusWidget"] {visibility: hidden;}
+            
+            /* Opción extra por si la anterior falla: Mover el footer fuera de la pantalla */
+            footer {
+                display: none !important;
+            }
+            
+            /* Ocultar botón 'Deploy' */
             .stDeployButton {display:none;}
             </style>
             """
