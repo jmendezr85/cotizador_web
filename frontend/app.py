@@ -322,7 +322,7 @@ def generar_pdf(items, total_global):
     pdf.ln(10)
     pdf.set_font("Helvetica", "B", 14)
     pdf.cell(0, 10, f"TOTAL: ${total_global:,.0f}", 0, 1, 'R')
-    return bytes(pdf.output())
+    return pdf.output(dest='S').encode('latin-1')
 
 # --- PREPARACIÓN DEL LOGO PARA HTML ---
 def obtener_imagen_base64(ruta):
