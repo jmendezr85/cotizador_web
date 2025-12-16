@@ -15,6 +15,23 @@ import simulador
 import numpy as np
 from scipy.interpolate import make_interp_spline # Para suavizar la curva
 
+hide_st_style = """
+            <style>
+            /* Ocultar el menú de hamburguesa (3 rayitas arriba a la derecha) */
+            #MainMenu {visibility: hidden;}
+            
+            /* Ocultar el pie de página (donde sale 'Made with Streamlit' y tu foto) */
+            footer {visibility: hidden;}
+            
+            /* Ocultar la barra decorativa superior */
+            header {visibility: hidden;}
+            
+            /* Ocultar botón de 'Deploy' si aparece */
+            .stDeployButton {display:none;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 # ==========================================
 # 🎨 1. CONFIGURACIÓN VISUAL (UX/UI)
 # ==========================================
