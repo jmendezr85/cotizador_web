@@ -61,6 +61,27 @@ else:
     
 C_NEUTRAL = "#9CA3AF"
 
+st.markdown(f"""
+    <style>
+    /* Forzar el color de fondo de TODA la aplicación */
+    .stApp {{
+        background-color: {C_BG} !important;
+        color: {C_TEXT} !important;
+    }}
+    
+    /* Forzar el color de los inputs y textos secundarios */
+    p, div, label, h1, h2, h3, h4, h5, h6, span {{
+        color: {C_TEXT} !important;
+    }}
+    
+    /* Opcional: Ajustar tarjetas si usas st.metric o contenedores */
+    div[data-testid="stMetric"], div[data-testid="stExpander"] {{
+        background-color: {C_CARD} !important;
+        color: {C_TEXT} !important;
+    }}
+    </style>
+""", unsafe_allow_html=True)
+
 # ==========================================
 # 🔒 0.5 SEGURIDAD (MÓDULO NUEVO)
 # ==========================================
